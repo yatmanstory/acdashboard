@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
@@ -103,7 +103,81 @@ def get_agent_conid_data():
     except Exception as e:
         return {"error": f"데이터 조회 중 오류 발생: {str(e)}"}
 
-# 모든 테이블 데이터를 한 번에 조회하는 API
+@app.post("/db/lunch")
+async def save_lunch_data(request: Request):
+    try:
+        data = await request.json()
+        
+        if not test_db_connection():
+            return {"status": "error", "message": "데이터베이스 연결에 실패했습니다."}
+        
+        # lunch 테이블에서 KoreanName → conID 매핑 가져오기
+        korean_to_conid = {}
+        try:
+            df_lunch = pd.read_sql("SELECT conID, KoreanName FROM lunch", engine)
+            for _, row in df_lunch.iterrows():
+                if pd.notna(row['KoreanName']):
+                    korean_to_conid[row['KoreanName']] = row['conID']
+        except Exception as e:
+            return {"status": "error", "message": f"상담사 정보 조회 중 오류: {str(e)}"}
+        
+        # 트랜잭션 시작
+        with engine.begin() as conn:
+            # 데이터 업데이트 (conID 기준으로 lunch_time만 갱신)
+            updated_count = 0
+            for item in data:
+                korean_name = item.get("name")
+                lunch_time = item.get("lunch_time")
+                
+                # 한글 이름으로 conID 찾기
+                conid = korean_to_conid.get(korean_name)
+                
+                if conid and lunch_time:
+                    # UPDATE 구문으로 lunch_time만 갱신
+                    result = conn.execute(
+                        text("UPDATE lunch SET lunch_time = :lunch_time WHERE conID = :conid"),
+                        {"conid": conid, "lunch_time": lunch_time}
+                    )
+                    if result.rowcount > 0:
+                        updated_count += 1
+        
+        return {
+            "status": "success", 
+            "message": "점심 시간 데이터가 저장되었습니다.", 
+            "count": len(lunch_data),
+            "data": lunch_data
+        }
+        
+    except Exception as e:
+        return {"status": "error", "message": f"데이터 저장 중 오류 발생: {str(e)}"}
+
+@app.get("/db/lunch")
+def get_lunch_data():
+    try:
+        if not test_db_connection():
+            return {"error": "데이터베이스 연결에 실패했습니다."}
+        
+        # lunch 테이블의 conID와 lunch_time 조회
+        query = """
+        SELECT 
+            conID,
+            KoreanName, 
+            lunch_time
+        FROM 
+            lunch
+        WHERE
+            lunch_time IS NOT NULL
+        ORDER BY 
+            lunch_time
+        """
+        
+        df = pd.read_sql(query, engine)
+        
+        return df.to_dict(orient="records")
+    except Exception as e:
+        return {"error": f"데이터 조회 중 오류 발생: {str(e)}"}
+
+# 유효효한 테이블 데이터를 한 번에 조회하는 API
 @app.get("/db/all_data")
 def get_all_data():
     try:
@@ -121,11 +195,10 @@ def get_all_data():
         
         # uastatus 테이블 조회
         ua_query = "SELECT * FROM uastatus LIMIT 1000"
-        ua_df = pd.read_sql(ua_query, engine)
-        
+        ua_df = pd.read_sql(ua_query, engine)        
         result["uastatus"] = ua_df.to_dict(orient="records")
         
-        # agent_conid 테이블 조회
+        # agent_conID 테이블 조회
         try:
             agent_query = "SELECT * FROM agent_conID LIMIT 100"
             agent_df = pd.read_sql(agent_query, engine)
