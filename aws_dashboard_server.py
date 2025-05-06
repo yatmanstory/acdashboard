@@ -79,13 +79,9 @@ def get_uastatus_data():
         if not test_db_connection():
             return {"error": "데이터베이스 연결에 실패했습니다."}
         
-        query = "SELECT * FROM specialua ORDER BY created_at DESC LIMIT 100"
+        query = "SELECT * FROM uastatus ORDER BY created_at DESC LIMIT 1000"
         df = pd.read_sql(query, engine)
         
-        # 날짜/시간 포맷 변환
-        if 'created_at' in df.columns:
-            df['created_at'] = df['created_at'].astype(str)
-            
         return df.to_dict(orient="records")
     except Exception as e:
         return {"error": f"데이터 조회 중 오류 발생: {str(e)}"}
@@ -120,10 +116,9 @@ def get_all_data():
         result["ques"] = ques_df.to_dict(orient="records")
         
         # specialua 테이블 조회
-        ua_query = "SELECT * FROM specialua ORDER BY created_at DESC LIMIT 100"
+        ua_query = "SELECT * FROM uastatus ORDER BY created_at DESC LIMIT 1000"
         ua_df = pd.read_sql(ua_query, engine)
-        if 'created_at' in ua_df.columns:
-            ua_df['created_at'] = ua_df['created_at'].astype(str)
+        
         result["uastatus"] = ua_df.to_dict(orient="records")
         
         # agent_conid 테이블 조회
