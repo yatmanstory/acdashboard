@@ -143,9 +143,8 @@ async def save_lunch_data(request: Request):
         
         return {
             "status": "success", 
-            "message": "점심 시간 데이터가 저장되었습니다.", 
-            "count": len(lunch_data),
-            "data": lunch_data
+            "message": f"점심 시간 데이터가 갱신되었습니다. ({updated_count}건)",
+            "count": updated_count
         }
         
     except Exception as e:
