@@ -92,7 +92,7 @@ def get_agent_conid_data():
         if not test_db_connection():
             return {"error": "데이터베이스 연결에 실패했습니다."}
         
-        query = "SELECT * FROM agent_conid"
+        query = "SELECT * FROM agent_conID LIMIT 100"
         df = pd.read_sql(query, engine)
         
         return df.to_dict(orient="records")
@@ -115,7 +115,7 @@ def get_all_data():
             ques_df['created_at'] = ques_df['created_at'].astype(str)
         result["ques"] = ques_df.to_dict(orient="records")
         
-        # specialua 테이블 조회
+        # uastatus 테이블 조회
         ua_query = "SELECT * FROM uastatus LIMIT 1000"
         ua_df = pd.read_sql(ua_query, engine)
         
@@ -123,11 +123,11 @@ def get_all_data():
         
         # agent_conid 테이블 조회
         try:
-            agent_query = "SELECT * FROM agent_conid"
+            agent_query = "SELECT * FROM agent_conID LIMIT 100"
             agent_df = pd.read_sql(agent_query, engine)
-            result["agent_conid"] = agent_df.to_dict(orient="records")
+            result["agent_conID"] = agent_df.to_dict(orient="records")
         except Exception as e:
-            result["agent_conid"] = {"error": f"데이터 조회 중 오류 발생: {str(e)}"}
+            result["agent_conID"] = {"error": f"데이터 조회 중 오류 발생: {str(e)}"}
         
         return result
     except Exception as e:
