@@ -22,7 +22,11 @@ app = FastAPI()
 
 # CORS 설정
 ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # 개발 환경
+    "http://localhost:3000",  # 개발 환경 (React)
+    "http://localhost:5500",  # VS Code Live Server
+    "http://127.0.0.1:5500",  # VS Code Live Server (대체 URL)
+    "http://localhost:5501",  # Live Server 대체 포트
+    "http://127.0.0.1:5501",  # Live Server 대체 포트 (대체 URL)
     "https://dashboard-html-chi.vercel.app",  # Vercel 배포 프론트엔드
     "https://dashboard-server-8neo.onrender.com"  # Render 배포 백엔드
 ]
