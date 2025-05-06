@@ -62,7 +62,7 @@ def get_ques_data():
         if not test_db_connection():
             return {"error": "데이터베이스 연결에 실패했습니다."}
         
-        query = "SELECT * FROM ques ORDER BY created_at DESC LIMIT 100"
+        query = "SELECT * FROM ques ORDER BY id DESC LIMIT 100"
         df = pd.read_sql(query, engine)
         
         # 날짜/시간 포맷 변환
@@ -79,7 +79,7 @@ def get_uastatus_data():
         if not test_db_connection():
             return {"error": "데이터베이스 연결에 실패했습니다."}
         
-        query = "SELECT * FROM uastatus ORDER BY created_at DESC LIMIT 1000"
+        query = "SELECT * FROM uastatus LIMIT 1000"
         df = pd.read_sql(query, engine)
         
         return df.to_dict(orient="records")
@@ -109,14 +109,14 @@ def get_all_data():
         result = {}
         
         # ques 테이블 조회
-        ques_query = "SELECT * FROM ques ORDER BY created_at DESC LIMIT 100"
+        ques_query = "SELECT * FROM ques ORDER BY id DESC LIMIT 100"
         ques_df = pd.read_sql(ques_query, engine)
         if 'created_at' in ques_df.columns:
             ques_df['created_at'] = ques_df['created_at'].astype(str)
         result["ques"] = ques_df.to_dict(orient="records")
         
         # specialua 테이블 조회
-        ua_query = "SELECT * FROM uastatus ORDER BY created_at DESC LIMIT 1000"
+        ua_query = "SELECT * FROM uastatus LIMIT 1000"
         ua_df = pd.read_sql(ua_query, engine)
         
         result["uastatus"] = ua_df.to_dict(orient="records")
